@@ -2,7 +2,8 @@ from ursina import *
 import random
 
 time_counter = 0
-enemy_index = 5
+time_enemy = 0
+enemy_index = 0
 
 bullets = []
 
@@ -57,10 +58,11 @@ class Health_bar(Entity):
 bg = Entity(model="quad", scale=(sizex, sizey), texture="Forest", z=1)
 player = Entity(model='sphere', color=color.orange, scale_y=1, collider="box")
 
-green_bar = Health_bar(player, -0.6, 0, 255, 0)
-full_bar = Health_bar(player, -0.6, 255, 0, 0)
 
-green_bar.scale_x = 1
+full_bar = Health_bar(player, -0.6, 255, 0, 0)
+green_bar = Health_bar(player, -0.6, 0, 255, 0)
+
+""" green_bar.scale_x = 1 """
 
 for m in range(2):
     for n in range(2):
@@ -75,8 +77,9 @@ for m in range(2):
 
 
 def update():
-    global bullets, time_counter, enemy_index
+    global bullets, time_counter, enemy_index, time_enemy
     time_counter += time.dt
+    time_enemy += time.dt
 
     # Déplacement du joueur
     player.x += held_keys['d'] * (time.dt * 2)
@@ -85,7 +88,7 @@ def update():
     player.y -= held_keys['s'] * (time.dt * 2)
 
     # Création d'une balle
-    if held_keys['space']:
+    if time_enemy >= 1:
         e = Entity(
             y=player.y,
             x=player.x,
@@ -94,13 +97,15 @@ def update():
             scale = 0.2,
             collider='box'
         )
-        e.animate_x(
+
+        e.animate_y(
             30,
-            duration=2,
+            duration=3,
             curve=curve.linear
         )
         bullets.append(e)
-        invoke(destroy, e,delay=2)
+        invoke(destroy, e,delay=3)
+        time_enemy = 0
     
     # Apparition des ennemis
     if time_counter >= 3:
