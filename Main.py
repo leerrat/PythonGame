@@ -18,6 +18,8 @@ liste = []
 sizex = 16
 sizey = 9
 
+direction_tire = Vec3(1, 0, 0)
+
 class Enemy(Entity):
     def __init__(self, name, x, y, target):
         super().__init__()
@@ -62,8 +64,6 @@ player = Entity(model='sphere', color=color.orange, scale_y=1, collider="box")
 full_bar = Health_bar(player, -0.6, 255, 0, 0)
 green_bar = Health_bar(player, -0.6, 0, 255, 0)
 
-""" green_bar.scale_x = 1 """
-
 for m in range(2):
     for n in range(2):
         duplicate(bg, x=sizex * (m + 1), y=sizey * (n + 1))
@@ -77,44 +77,54 @@ for m in range(2):
 
 
 def update():
-    global bullets, time_counter, enemy_index, time_enemy
+    global bullets, time_counter, enemy_index, time_enemy, direction_tire
     time_counter += time.dt
     time_enemy += time.dt
 
-    # Déplacement du joueur
-    player.x += held_keys['d'] * (time.dt * 2)
-    player.x -= held_keys['a'] * (time.dt * 2)
-    player.y += held_keys['w'] * (time.dt * 2)
-    player.y -= held_keys['s'] * (time.dt * 2)
+    player_direction = Vec3(0, 0, 0)
 
-    # Création d'une balle
-    if time_enemy >= 1:
+    if held_keys['d']:
+        player_direction.x = 1  
+    if held_keys['a']:
+        player_direction.x = -1 
+    if held_keys['w']:
+        player_direction.y = 1 
+    if held_keys['s']:
+        player_direction.y = -1
+
+    player_direction = player_direction.normalized()
+    player.x += player_direction.x * time.dt * 3
+    player.y += player_direction.y * time.dt * 3
+
+    if player_direction.length() > 0:
+        direction_tire = player_direction.normalized()
+
+    if time_counter >= 1: 
         e = Entity(
             y=player.y,
             x=player.x,
-            model ='cube',
-            color = color.red,
-            scale = 0.2,
+            model='cube',
+            color=color.red,
+            scale=0.2,
             collider='box'
         )
-
-        e.animate_y(
-            30,
+        e.animate_position(
+            e.position + direction_tire * 30,  
             duration=3,
             curve=curve.linear
         )
         bullets.append(e)
-        invoke(destroy, e,delay=3)
-        time_enemy = 0
+        invoke(destroy, e, delay=3)
+        time_counter = 0
     
     # Apparition des ennemis
-    if time_counter >= 3:
+    if time_enemy >= 3:
         x_random = random.uniform(-sizex, sizex)
         y_random = random.uniform(-sizey, sizey)
         new_enemy = Enemy(f"ennemi{enemy_index}", x_random, y_random, player)
         liste.append(new_enemy)
         enemy_index += 1
-        time_counter = 0
+        time_enemy = 0
 
     for enemy in liste:
         for other in liste:
