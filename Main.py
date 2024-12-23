@@ -20,6 +20,8 @@ sizey = 9
 
 direction_tire = Vec3(1, 0, 0)
 
+score = 0
+
 class Enemy(Entity):
     def __init__(self, name, x, y, target):
         super().__init__()
@@ -60,6 +62,24 @@ class Health_bar(Entity):
 bg = Entity(model="quad", scale=(sizex, sizey), texture="Forest", z=1)
 player = Entity(model='sphere', color=color.orange, scale_y=1, collider="box")
 
+text=Text(text=f"Score: {score}", target=player, scale=2, color=color.yellow,background=True,position=(-.65,.4))
+
+class Experience(Entity):
+    def __init__(self, position):
+        super().__init__(
+            model='sphere',
+            color=color.yellow,
+            scale=0.5,
+            position=position,
+            collider='box',
+        )
+
+    def update(self):
+        global score,text
+        if distance(self.position, player.position) < 1:
+            score +=1
+            text.text = f"Score: {score}"
+            destroy(self)
 
 full_bar = Health_bar(player, -0.6, 255, 0, 0)
 green_bar = Health_bar(player, -0.6, 0, 255, 0)
@@ -77,7 +97,7 @@ for m in range(2):
 
 
 def update():
-    global bullets, time_counter, enemy_index, time_enemy, direction_tire
+    global bullets, time_counter, enemy_index, time_enemy, direction_tire, score,  text
     time_counter += time.dt
     time_enemy += time.dt
 
@@ -99,7 +119,7 @@ def update():
     if player_direction.length() > 0:
         direction_tire = player_direction.normalized()
 
-    if time_counter >= 1: 
+    if time_counter >= 0.5: 
         e = Entity(
             y=player.y,
             x=player.x,
@@ -141,6 +161,7 @@ def update():
     for bullet in bullets[:]:  # Itérer sur une copie de la liste des balles
         for enemy in liste[:]:  # Itérer sur une copie de la liste des ennemis
             if bullet.intersects(enemy).hit:
+                Experience(position=enemy.position)
                 destroy(bullet)
                 destroy(enemy)
                 bullets.remove(bullet)
@@ -152,6 +173,7 @@ def update():
             green_bar.scale_x -= shrink * time.dt
             if green_bar.scale_x < 0:
                 green_bar.scale_x = 0
+    
             
 
 camera.add_script(SmoothFollow(target=player, offset=[0, 1, -40], speed=10))
