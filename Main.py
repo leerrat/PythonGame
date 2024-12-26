@@ -6,6 +6,7 @@ time_enemy = 0
 enemy_index = 0
 
 bullets = []
+auras = []
 
 speed = 1
 dx = 0
@@ -62,7 +63,7 @@ class Health_bar(Entity):
 bg = Entity(model="quad", scale=(sizex, sizey), texture="Forest", z=1)
 player = Entity(model='sphere', color=color.orange, scale_y=1, collider="box")
 
-text=Text(text=f"Score: {score}", target=player, scale=2, color=color.yellow,background=True,position=(-.65,.4))
+text=Text(text=f"Exp: {score}", target=player, scale=2, color=color.yellow,background=True,position=(-.65,.4))
 
 class Experience(Entity):
     def __init__(self, position):
@@ -95,6 +96,18 @@ for m in range(2):
         duplicate(bg, x=sizex * (m + 1))
         duplicate(bg, y=-sizey * (m + 1))
 
+aura = Entity(
+        y=player.y+2,
+        x=player.x+2,
+        model='cube',
+        color=color.green,
+        scale=0.5,
+        collider='box',
+        target = player
+    )
+auras.append(aura)
+
+#invoke(destroy, aura, delay=5)
 
 def update():
     global bullets, time_counter, enemy_index, time_enemy, direction_tire, score,  text
@@ -119,7 +132,12 @@ def update():
     if player_direction.length() > 0:
         direction_tire = player_direction.normalized()
 
-    if time_counter >= 0.5: 
+    for i, aura in enumerate(auras):
+        angle = (time.time() * 100 + i * (360 / len(auras))) % 360
+        aura.x = player.x + 2 * math.cos(math.radians(angle))
+        aura.y = player.y + 2 * math.sin(math.radians(angle))
+
+    if time_counter >= 0.8: 
         e = Entity(
             y=player.y,
             x=player.x,
@@ -158,8 +176,8 @@ def update():
             direction = (enemy.position - player.position).normalized()
             enemy.position += direction * time.dt * 2  # Repousse l'ennemi plus vite
 
-    for bullet in bullets[:]:  # Itérer sur une copie de la liste des balles
-        for enemy in liste[:]:  # Itérer sur une copie de la liste des ennemis
+    for bullet in bullets[:]:
+        for enemy in liste[:]:
             if bullet.intersects(enemy).hit:
                 Experience(position=enemy.position)
                 destroy(bullet)
@@ -167,14 +185,20 @@ def update():
                 bullets.remove(bullet)
                 liste.remove(enemy)
                 break 
- 
+                
+    for aura in auras[:]:
+        for enemy in liste[:]:
+            if aura.intersects(enemy).hit:
+                Experience(position=enemy.position)
+                destroy(enemy)
+                liste.remove(enemy)
+                break 
+
     for enemy in liste:
         if enemy.intersects(player).hit:
             green_bar.scale_x -= shrink * time.dt
             if green_bar.scale_x < 0:
                 green_bar.scale_x = 0
-    
-            
 
 camera.add_script(SmoothFollow(target=player, offset=[0, 1, -40], speed=10))
 app.run()
