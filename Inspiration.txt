@@ -5,3 +5,5 @@ https://www.youtube.com/watch?v=lWaDmuore3M&list=PLgQYnHnDxgtjILmQbQXQeUTHiLLSRk
 https://www.youtube.com/watch?v=sQ9odyPaUsk
 https://stackoverflow.com/questions/72311325/pause-function-ursina-python
 https://www.youtube.com/watch?v=CUOlZihHR2M
+
+Voici presque ce que j'ai utiliser pour ce projet (Aussi un peu de IA pour les broutilles)
